@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
+use Illuminate\Support\Facades\Cache;
 use Validator;
 use App\Http\Resources\News as NewsResource;
 use App\Models\News;
@@ -23,7 +24,10 @@ class NewsController extends BaseController
             ['news.topics_id', 'LIKE', '%'.$search_topic.'%']
         ];
 
-        $news = News::where($filters)->get(); 
+        $news = Cache::remember("news_all_".$search_news_status."_".$search_topic, 10 * 60, function () use ($filters)
+        {
+            return News::where($filters)->get();
+        }); 
         return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
     }
 
@@ -46,6 +50,9 @@ class NewsController extends BaseController
             }
         }
         if ($news) {
+
+            $redis = Cache::forget("*news*");
+
             $dataInserted = News::where('id', $news_id)->get();
             return $this->sendResponse(NewsResource::collection($dataInserted), 'Data Saved Successfully!');
         } else {
@@ -55,7 +62,10 @@ class NewsController extends BaseController
 
     public function show($id)
     {
-        $news = News::where('id', $id)->get();
+        $news = Cache::remember("news_all_show_{$id}", 10 * 60, function () use ($id)
+        {
+            return News::where('id', $id)->get();
+        }); 
         return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
     }
 
@@ -76,6 +86,8 @@ class NewsController extends BaseController
                 }
             }
 
+            $redis = Cache::flush();
+
             $data = News::where('id', $id)->get();
             return $this->sendResponse(NewsResource::collection($data), 'Data Updated Successfully!');
         } else {
@@ -90,6 +102,9 @@ class NewsController extends BaseController
         ]);
 
         if ($news) {
+
+            $redis = Cache::flush();
+
             $data = News::where('id', $id)->get();
             return $this->sendResponse(NewsResource::collection($data), 'News has been published!');
         } else {
@@ -110,6 +125,9 @@ class NewsController extends BaseController
         ]);
 
         if ($news) {
+
+            $redis = Cache::flush();
+            
             $data = News::where('id', $id)->get();
             return $this->sendResponse(NewsResource::collection($data), 'News has been deleted!');
         } else {

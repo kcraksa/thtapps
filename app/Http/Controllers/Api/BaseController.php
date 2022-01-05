@@ -11,6 +11,7 @@ class BaseController extends Controller
 	{
 		$response = [
 			'success' => true,
+			'total' => count($result),
 			'data' => $result,
 			'message' => $message
 		];
@@ -22,6 +23,7 @@ class BaseController extends Controller
 	{
 		$response = [
 			'success' => false,
+			'total' => 0,
 			'message' => $error
 		];
 
