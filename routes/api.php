@@ -3,6 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\NewsController;
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -14,6 +17,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('login', [AuthController::class, 'signin'])->name('login');
+Route::post('register', [AuthController::class, 'signup'])->name('register');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::resource('news', NewsController::class);
+    Route::put('news/{id}/publish', 'App\Http\Controllers\Api\NewsController@publish')->name('news.publish');
 });

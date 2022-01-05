@@ -21,10 +21,10 @@ class NewsController extends Controller
 
         $filters = [
             ['news.status', 'LIKE', '%'.$search_news_status.'%'], 
-            ['news.topic_id', 'LIKE', '%'.$search_topic.'%']
+            ['news.topics_id', 'LIKE', '%'.$search_topic.'%']
         ];
 
-        $data['news'] = News::getAllNews($filters);
+        $data['news'] = News::where($filters)->paginate(10);
         $data['topics'] = Topics::all();
         $data['search_param'] = $request->all();
         $data['status'] = ['' => 'All News Status', 'draft' => 'Draft', 'publish' => 'Publish', 'deleted' => 'Deleted'];
@@ -51,7 +51,7 @@ class NewsController extends Controller
     public function store(Request $request)
     {
         $news = News::create([
-            'topic_id' => $request->topic_id,
+            'topics_id' => $request->topics_id,
             'title' => $request->title,
             'content' => $request->content,
             'status' => 'draft'

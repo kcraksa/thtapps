@@ -6,19 +6,22 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Model;
 
+use App\Models\Tags;
+use App\Models\Topics;
+
 class News extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['topic_id', 'title', 'content', 'status'];
+    protected $fillable = ['topics_id', 'title', 'content', 'status'];
 
-    public function getAllNews($filters)
+    public function tags()
     {
-        return DB::table('news')
-                    ->join('topics', 'news.topic_id', '=' , 'topics.id')
-                    ->select('news.title', 'topics.topic', 'news.status', 'news.id')
-                    ->where($filters)
-                    ->orderBy('news.id', 'DESC')
-                    ->paginate(10);
+        return $this->hasMany(Tags::class);
+    }
+
+    public function topics()
+    {
+        return $this->belongsTo(Topics::class);
     }
 }
