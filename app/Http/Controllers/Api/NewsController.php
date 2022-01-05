@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Database\Eloquent\Builder;
 use Validator;
 use App\Http\Resources\News as NewsResource;
 use App\Models\News;
@@ -17,17 +18,15 @@ class NewsController extends BaseController
     public function index(Request $request)
     {
         $search_news_status = $request->search_news_status;        
-        $search_topic = $request->search_topic;        
-
-        $filters = [
-            ['news.status', 'LIKE', '%'.$search_news_status.'%'], 
-            ['news.topics_id', 'LIKE', '%'.$search_topic.'%']
-        ];
+        $search_topic = $request->search_topic;
 
         try {
-            $news = Cache::remember("news_all_".$search_news_status."_".$search_topic, 10 * 60, function () use ($filters)
+            $news = Cache::remember("news_all_".$search_news_status."_".$search_topic, 10 * 60, function () use ($search_topic, $search_news_status)
             {
-                return News::where($filters)->get();
+                return News::where('news.status', 'LIKE', '%'.$search_news_status.'%')->whereHas('topics', function (Builder $query) use ($search_topic) 
+                {
+                    $query->where('topic', 'LIKE', '%'.$search_topic.'%');
+                })->get();
             }); 
             return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
         } catch (\Throwable $e) {
