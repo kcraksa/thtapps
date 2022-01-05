@@ -24,91 +24,122 @@ class NewsController extends BaseController
             ['news.topics_id', 'LIKE', '%'.$search_topic.'%']
         ];
 
-        $news = Cache::remember("news_all_".$search_news_status."_".$search_topic, 10 * 60, function () use ($filters)
-        {
-            return News::where($filters)->get();
-        }); 
-        return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
+        try {
+            $news = Cache::remember("news_all_".$search_news_status."_".$search_topic, 10 * 60, function () use ($filters)
+            {
+                return News::where($filters)->get();
+            }); 
+            return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
+        } catch (\Throwable $e) {
+            return $this->sendError('Unauthorized', '', 401);
+        }
     }
 
     public function store(Request $request)
     {
-        $news = News::create([
-            'topics_id' => $request->topics_id,
-            'title' => $request->title,
-            'content' => $request->content,
-            'status' => 'draft'
-        ]);
+        try {
+            $validator = Validator::make($request->all(), [
+                'topics_id' => 'required',
+                'title' => 'required',
+                'content' => 'required'
+            ]); 
 
-        $news_id = $news->id;
-        if (isset($request->tags)) {
-            foreach ($request->tags as $tag) {
-                Tags::create([
-                    'news_id' => $news_id,
-                    'tag' => $tag
-                ]);
-            }
-        }
-        if ($news) {
+            if ($validator->fails()) {
+                return $this->sendError('Required field Cannot be empty', '', 403);
+            }       
 
-            $redis = Cache::forget("*news*");
+            $news = News::create([
+                'topics_id' => $request->topics_id,
+                'title' => $request->title,
+                'content' => $request->content,
+                'status' => 'draft'
+            ]);
 
-            $dataInserted = News::where('id', $news_id)->get();
-            return $this->sendResponse(NewsResource::collection($dataInserted), 'Data Saved Successfully!');
-        } else {
-            return $this->sendError('Failed to store data.', '', 404);
-        }      
-    }
-
-    public function show($id)
-    {
-        $news = Cache::remember("news_all_show_{$id}", 10 * 60, function () use ($id)
-        {
-            return News::where('id', $id)->get();
-        }); 
-        return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
-    }
-
-    public function update(Request $request, $id)
-    {
-        $news = News::findOrFail($id);
-        $news->update($request->all());
-
-        if ($news) {
-
+            $news_id = $news->id;
             if (isset($request->tags)) {
-                $tags = Tags::where('news_id', $id)->delete();
                 foreach ($request->tags as $tag) {
                     Tags::create([
-                        'news_id' => $id,
+                        'news_id' => $news_id,
                         'tag' => $tag
                     ]);
                 }
             }
+            if ($news) {
 
-            $redis = Cache::flush();
+                $redis = Cache::forget("*news*");
 
-            $data = News::where('id', $id)->get();
-            return $this->sendResponse(NewsResource::collection($data), 'Data Updated Successfully!');
-        } else {
-            return $this->sendError('Failed to update data.', '', 404);
+                $dataInserted = News::where('id', $news_id)->get();
+                return $this->sendResponse(NewsResource::collection($dataInserted), 'Data Saved Successfully!');
+            } else {
+                return $this->sendError('Unauthorized', '', 401);
+            }      
+        } catch (\Throwable $t) {
+            return $this->sendError('Unauthorized', '', 401);
+        }
+    }
+
+    public function show($id)
+    {
+        try {
+            $news = Cache::remember("news_all_show_{$id}", 10 * 60, function () use ($id)
+            {
+                return News::where('id', $id)->get();
+            }); 
+            return $this->sendResponse(NewsResource::collection($news), 'Get data Fectched!');
+        } catch (\Throwable $t) {
+            return $this->sendError('Unauthorized', '', 401);
+        } 
+    }
+
+    public function update(Request $request, $id)
+    {
+        try {
+
+            $news = News::findOrFail($id);
+            $news->update($request->all());
+
+            if ($news) {
+
+                if (isset($request->tags)) {
+                    $tags = Tags::where('news_id', $id)->delete();
+                    foreach ($request->tags as $tag) {
+                        Tags::create([
+                            'news_id' => $id,
+                            'tag' => $tag
+                        ]);
+                    }
+                }
+
+                $redis = Cache::flush();
+
+                $data = News::where('id', $id)->get();
+                return $this->sendResponse(NewsResource::collection($data), 'Data Updated Successfully!');
+            } else {
+                return $this->sendError('Failed to update data.', '', 403);
+            }
+        } catch (\Throwable $t) {
+            return $this->sendError('Unauthorized', '', 401);
         }
     }
 
     public function publish(Request $request, $id)
     {
-        $news = News::findOrFail($id)->update([
-            'status' => 'publish'
-        ]);
+        try {
+            $news = News::findOrFail($id)->update([
+                'status' => 'publish'
+            ]);
 
-        if ($news) {
+            if ($news) {
 
-            $redis = Cache::flush();
+                $redis = Cache::flush();
 
-            $data = News::where('id', $id)->get();
-            return $this->sendResponse(NewsResource::collection($data), 'News has been published!');
-        } else {
-            return $this->sendError('Failed to publish news!', '', 404);
+                $data = News::where('id', $id)->get();
+                return $this->sendResponse(NewsResource::collection($data), 'News has been published!');
+            } else {
+                return $this->sendError('Failed to publish news!', '', 403);
+            }
+        } catch (\Throwable $t) {
+            return $this->sendError('Unauthorized', '', 401);
         }
     }
 
@@ -120,18 +151,22 @@ class NewsController extends BaseController
      */
     public function destroy($id)
     {
-        $news = News::findOrFail($id)->update([
-            'status' => 'deleted'
-        ]);
+        try {
+            $news = News::findOrFail($id)->update([
+                'status' => 'deleted'
+            ]);
 
-        if ($news) {
+            if ($news) {
 
-            $redis = Cache::flush();
-            
-            $data = News::where('id', $id)->get();
-            return $this->sendResponse(NewsResource::collection($data), 'News has been deleted!');
-        } else {
-            return $this->sendError('Failed to delete news!', '', 404);
+                $redis = Cache::flush();
+                
+                $data = News::where('id', $id)->get();
+                return $this->sendResponse(NewsResource::collection($data), 'News has been deleted!');
+            } else {
+                return $this->sendError('Failed to delete news!', '', 403);
+            }
+        } catch (\Throwable $t) {
+            return $this->sendError('Unauthorized', '', 401);
         }
     }
 }

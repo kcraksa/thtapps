@@ -23,8 +23,7 @@ class News extends JsonResource
             'status' => $this->status,
             'tags' => $this->tags,
             'created_at' => $this->created_at,
-            'update_at' => $this->updated_at,
-            'deleted_at' => $this->deleted_at,
+            'update_at' => $this->updated_at
         ];
     }
 }
