@@ -17,11 +17,11 @@
 						@method('PUT')
 						<div class="mb-3">
 							<label for="topic_id">Topic</label>
-							<select class="form-select" name="topic_id" id="topic_id" required>
+							<select class="form-select" name="topics_id" id="topics_id" required>
 								<option value="">-- Select Topic --</option>
 								@foreach ($topics as $topic)
 
-									@if ($topic->id == $news->topic_id)
+									@if ($topic->id == $news->topics_id)
 										<option value="{{ $topic->id }}" selected>{{ $topic->topic }}</option>
 									@else
 										<option value="{{ $topic->id }}">{{ $topic->topic }}</option>
@@ -40,7 +40,7 @@
 						</div>
 						<div class="mb-3">
 							<label for="tag">Tags</label>
-							<input type="text" name="tag" id="tag" class="form-control">
+							<input type="text" name="tag" id="tag" class="form-control" placeholder="Enter to add a tag">
 							<div id="tags_container" style="margin-top: 5px">
 								@foreach ($tags as $tag)
 

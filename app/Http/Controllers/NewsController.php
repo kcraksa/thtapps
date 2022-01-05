@@ -80,7 +80,10 @@ class NewsController extends Controller
      */
     public function show($id)
     {
-        //
+        $data['news'] = News::findOrFail($id);
+        $data['topics'] = Topics::all();
+        $data['tags'] = Tags::where('news_id', $id)->get();
+        return view('news.form_view', $data);
     }
 
     /**
@@ -107,11 +110,7 @@ class NewsController extends Controller
     public function update(Request $request, $id)
     {
         $news = News::findOrFail($id);
-        $news->update([
-            'title' => $request->title,
-            'content' => $request->content,
-            'topic_id' => $request->topic_id
-        ]);
+        $news->update($request->all());
 
         if ($news) {
             $tags = Tags::where('news_id', $id)->delete();
@@ -151,12 +150,14 @@ class NewsController extends Controller
      */
     public function destroy($id)
     {
-        $news = News::findOrFail($id)->delete();
+        $news = News::findOrFail($id)->update([
+            'status' => 'deleted'
+        ]);
 
         if ($news) {
-            return redirect()->route('news.index')->with('success', 'Data has been deleted!');
+            return redirect()->route('news.index')->with('success', 'News has been deleted!');
         } else {
-            return redirect()->route('news.index')->with('failed', 'Delete data failed!');
+            return redirect()->route('news.index')->with('failed', 'Failed to delete news!');
         }
     }
 }

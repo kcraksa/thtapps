@@ -9,7 +9,14 @@
 		<div class="col-md-12">
 			<div class="card">
 				<div class="card-header">
-					<h4 class="card-title">News Management</h4>
+					<div class="row">
+						<div class="col-md-6 text-first">
+							<h4 class="card-title">News Management</h4>
+						</div>
+						<div class="col-md-6 text-end">
+							<a class="btn btn-default" href="{{ url('/') }}">Back to Home</a>
+						</div>
+					</div>
 				</div>
 				<div class="card-body">
 					<div class="container">
@@ -97,11 +104,11 @@
 
 													<tr>
 														<td>{{ $k + 1 }}</td>
-														<td>{{ $n->topic }}</td>
+														<td>{{ $n->topics->topic }}</td>
 														<td>{{ $n->title }}</td>
 														<td>{{ $n->status }}</td>
 														<td>
-															<button class="btn btn-primary btn-sm" title="View"><span class="fas fa-eye"></span></button>
+															<a href="{{ route('news.show', $n->id) }}" class="btn btn-primary btn-sm" title="View"><span class="fas fa-eye"></span></a>
 															<a href="{{ route('news.edit', $n->id) }}" class="btn btn-warning btn-sm" title="Edit"><span class="fas fa-pencil-alt"></span></a>
 															<button class="btn btn-success btn-sm" title="Publish" data-bs-toggle="modal" data-bs-target="#popupConfirmPublish{{ $n->id }}"><span class="fas fa-share"></span></button>
 															<button class="btn btn-danger btn-sm" title="Delete" data-bs-toggle="modal" data-bs-target="#popupConfirmDelete{{ $n->id }}"><span class="fas fa-trash-alt"></span></button>

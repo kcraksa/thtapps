@@ -34,7 +34,7 @@
 									</div>
 								@endif
 								<div class="card">
-									<form>
+									<form action="{{ route('topics.index') }}" method="GET">
 										<div class="card-header">
 											<h6 class="card-title">Search</h6>
 										</div>
@@ -80,7 +80,7 @@
 														<td>{{ $topic->topic }}</td>
 														<td>
 															<button class="btn btn-warning btn-sm" title="Edit" data-bs-toggle="modal" data-bs-target="#popupFormEdit{{ $topic->id }}"><span class="fas fa-pencil-alt"></span></button>
-															<button class="btn btn-danger btn-sm" title="Delete"><span class="fas fa-trash-alt"></span></button>
+															<button class="btn btn-danger btn-sm" title="Delete" data-bs-toggle="modal" data-bs-target="#popupFormDelete{{ $topic->id }}"><span class="fas fa-trash-alt"></span></button>
 														</td>
 													</tr>
 
@@ -113,6 +113,30 @@
 													</div>
 
 													<!-- End of Modal Edit -->
+
+													<!-- Modal Confirmation Delete -->
+
+													<div class="modal fade" id="popupFormDelete{{ $topic->id }}" tabindex="-1">
+													  	<div class="modal-dialog">
+													    	<div class="modal-content">
+													      		<div class="modal-header">
+													        		<h5 class="modal-title">Confirmation</h5>
+													        		<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+													      		</div>
+													      		<div class="modal-body">
+													        		<p>Delete : <b>{{ $topic->topic }}</b> ?</p>
+													      		</div>
+													      		<div class="modal-footer">
+													        		<form action="{{ route('topics.destroy', $topic->id) }}" method="POST">
+													        			@csrf
+													        			@method('DELETE')
+													        			<button type="submit" class="btn btn-primary">Yes</button>
+													        			<button type="button" class="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+													        		</form>
+													      		</div>
+													    	</div>
+													 	</div>
+													</div>
 
 													@endforeach
 												</tbody>
